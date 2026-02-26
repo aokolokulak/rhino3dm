@@ -126,6 +126,10 @@ if (${RHINO3DM_PY})
     #target_link_libraries(_rhino3dm -luuid)
   else()
     add_library(zlib_static STATIC ${zlib_SRC})
+    set_target_properties(zlib_static PROPERTIES 
+      CXX_VISIBILITY_PRESET hidden
+      VISIBILITY_INLINES_HIDDEN ON
+    )
     add_library(opennurbs_static STATIC ${opennurbs_SRC})
     if(PYTHON_BINDING_LIB STREQUAL "NANOBIND")
       #need to build nanobind to link it?
@@ -146,6 +150,6 @@ if (${RHINO3DM_PY})
     target_link_libraries(_rhino3dm PRIVATE debug lib/draco/Debug/draco)
     target_link_libraries(_rhino3dm PRIVATE optimized ${CMAKE_BINARY_DIR}/draco_static/Release/draco.lib)
   else()
-    target_link_libraries(_rhino3dm PRIVATE ${CMAKE_BINARY_DIR}/draco_static/libdraco.a)
+    target_link_libraries(_rhino3dm PRIVATE draco_static)
   endif()
 endif()
