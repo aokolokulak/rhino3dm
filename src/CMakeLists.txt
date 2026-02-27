@@ -85,6 +85,14 @@ if(${RHINO3DM_JS})
   endif()
 endif()
 
+if (${RHINO3DM_PY})
+  # Set default symbol visibility to hidden to prevent conflicts with other libraries
+  if(NOT MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
+  endif()
+endif()
+
 add_definitions(-D_GNU_SOURCE)
 add_definitions(-DON_COMPILING_OPENNURBS)
 add_definitions(-DOPENNURBS_FREETYPE_INC_)
@@ -122,15 +130,27 @@ if (${RHINO3DM_PY})
       pybind11_add_module(_rhino3dm ${bindings_SRC} ${opennurbs_SRC} ${zlib_SRC} ${uuid_SRC})
       target_link_libraries(_rhino3dm PRIVATE pybind11::module)
     endif()
+    # Hide all symbols by default to prevent conflicts with other libraries (e.g., OpenVDB's zlib)
+    set_target_properties(_rhino3dm PROPERTIES
+      CXX_VISIBILITY_PRESET hidden
+      C_VISIBILITY_PRESET hidden
+      VISIBILITY_INLINES_HIDDEN ON
+    )
     #pybind11_add_module(_rhino3dm ${bindings_SRC} ${opennurbs_SRC} ${zlib_SRC} ${uuid_SRC})
     #target_link_libraries(_rhino3dm -luuid)
   else()
     add_library(zlib_static STATIC ${zlib_SRC})
     set_target_properties(zlib_static PROPERTIES 
       CXX_VISIBILITY_PRESET hidden
+      C_VISIBILITY_PRESET hidden
       VISIBILITY_INLINES_HIDDEN ON
     )
     add_library(opennurbs_static STATIC ${opennurbs_SRC})
+    set_target_properties(opennurbs_static PROPERTIES
+      CXX_VISIBILITY_PRESET hidden
+      C_VISIBILITY_PRESET hidden
+      VISIBILITY_INLINES_HIDDEN ON
+    )
     if(PYTHON_BINDING_LIB STREQUAL "NANOBIND")
       #need to build nanobind to link it?
       nanobind_build_library(nanobind)
@@ -143,6 +163,12 @@ if (${RHINO3DM_PY})
     
     target_link_libraries(_rhino3dm PRIVATE zlib_static)
     target_link_libraries(_rhino3dm PRIVATE opennurbs_static)
+    # Hide all symbols by default to prevent conflicts with other libraries
+    set_target_properties(_rhino3dm PROPERTIES
+      CXX_VISIBILITY_PRESET hidden
+      C_VISIBILITY_PRESET hidden
+      VISIBILITY_INLINES_HIDDEN ON
+    )
   endif()
 
   add_subdirectory(lib/draco)
